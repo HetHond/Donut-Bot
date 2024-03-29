@@ -1,0 +1,5 @@
+config.json
+service-account-credentials.json
+venv
+.idea
+__pycache__

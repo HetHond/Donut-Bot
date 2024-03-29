@@ -69,6 +69,6 @@ def main():
             print(f'Updated worksheet with id {worksheet.id} inside of {worksheet.spreadsheet.title}.')
 
         last_update = time.time()
-        print(f'Looping for {config['interval']} seconds.')
+        print(f'Looping for {config["interval"]} seconds.')
         while (time.time() - last_update) < config['interval']:
             pass

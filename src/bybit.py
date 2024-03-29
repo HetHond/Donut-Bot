@@ -23,8 +23,8 @@ def get_bybit_market_price(symbol: str) -> float | None:
     if response_json.get('retCode') != 0:
         # TODO: handle errors
         print(f'Bybit Error while requesting market price for {symbol}')
-        print(f'\tCODE: {response_json.get('retCode')}')
-        print(f'\tMSG: {response_json.get('retMsg')}')
+        print(f'\tCODE: {response_json.get("retCode")}')
+        print(f'\tMSG: {response_json.get("retMsg")}')
         return None
     return float(response_json['result']['list'][0]['markPrice'])
 
@@ -49,7 +49,7 @@ def get_bybit_funding_rate_history(symbol: str,
     if response_json.get('retCode') != 0:
         # TODO: handle errors
         print(f'Bybit Error while requesting funding rate history for {symbol}')
-        print(f'\tCODE: {response_json.get('retCode')}')
-        print(f'\tMSG: {response_json.get('retMsg')}')
+        print(f'\tCODE: {response_json.get("retCode")}')
+        print(f'\tMSG: {response_json.get("retMsg")}')
         return None
     return response_json['result']['list']

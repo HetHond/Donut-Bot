@@ -65,15 +65,15 @@ class KucoinClient:
         if response.status_code != 200:
             # TODO: Handle errors
             print(f'HTTP Error while requesting market price for {symbol}')
-            print(f'\tCODE: {response_json.get('code')}')
-            print(f'\tMSG: {response_json.get('msg')}')
+            print(f'\tCODE: {response_json.get("code")}')
+            print(f'\tMSG: {response_json.get("msg")}')
             return None
 
         if response_json.get('code') != '200000':
             # TODO: Handle error
             print(f'KuCoin Error while requesting market price for {symbol}')
-            print(f'\tCODE:{response_json.get('code')}')
-            print(f'\tMSG: {response_json.get('msg')}')
+            print(f'\tCODE:{response_json.get("code")}')
+            print(f'\tMSG: {response_json.get("msg")}')
             return None
 
         return response_json['data']['value']
@@ -93,15 +93,15 @@ class KucoinClient:
         if response.status_code != 200:
             # TODO: Handle errors
             print(f'HTTP Error while requesting funding rate history for {symbol}')
-            print(f'\tCODE: {response_json.get('code')}')
-            print(f'\tMSG: {response_json.get('msg')}')
+            print(f'\tCODE: {response_json.get("code")}')
+            print(f'\tMSG: {response_json.get("msg")}')
             return None
 
         if response_json.get('code') != '200000':
             # TODO: Handle error
             print(f'KuCoin Error while requesting funding rate history for {symbol}')
-            print(f'\tCODE:{response_json.get('code')}')
-            print(f'\tMSG: {response_json.get('msg')}')
+            print(f'\tCODE:{response_json.get("code")}')
+            print(f'\tMSG: {response_json.get("msg")}')
             return None
 
         return response_json.get('data')

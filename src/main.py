@@ -3,6 +3,7 @@ import sys
 import os
 import json
 import time
+import logging
 
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
@@ -12,6 +13,8 @@ from .donut_bot import DonutBot
 from .sheets_client import get_gspread_with_service_account, get_gspread_client_with_auth
 from .constants import GOOGLE_SHEETS_SCOPES, CONFIG_SCHEMA
 
+logger = logging.getLogger(__name__)
+
 
 def get_config(config_path):
     try:
@@ -20,13 +23,13 @@ def get_config(config_path):
             validate(instance=config, schema=CONFIG_SCHEMA)
             return config
     except FileNotFoundError:
-        print("Configuration file not found.")
+        logger.critical("Configuration file not found.")
         sys.exit(1)
     except json.JSONDecodeError:
-        print("Error decoding the configuration file.")
+        logger.critical("Error deserializing the configuration file.")
         sys.exit(1)
     except ValidationError as e:
-        print(f"Configuration validation error: ", e)
+        logger.critical("Error while validating configuration file: ", e)
         sys.exit(1)
 
 
@@ -43,16 +46,18 @@ def parse_args():
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
     args = parse_args()
     config = get_config(args.config)
-    print('Read and validated configuration file.')
+    logger.info('Read and validated configuration file.')
 
     donut_bot = DonutBot(
         kucoin_key=args.kucoin_api_key,
         kucoin_secret=args.kucoin_api_secret,
         kucoin_passphrase=args.kucoin_api_passphrase
     )
-    print('Initiated donut bot.')
+    logger.info('Initiated donut bot.')
 
     if args.service_account:
         gclient = get_gspread_with_service_account(args.service_account_path, scopes=GOOGLE_SHEETS_SCOPES)
@@ -61,14 +66,15 @@ def main():
 
     worksheets = [gclient.open_by_key(sheet['spreadsheet_id']).get_worksheet_by_id(sheet['worksheet_id']) for sheet in config['spreadsheets']]
 
-    print('Starting loop.')
+    logger.info('Starting loop.')
     while True:
         for worksheet in worksheets:
-            print(f'Updating worksheet with id {worksheet.id} inside of {worksheet.spreadsheet.title}.')
+            logger.info(f'Updating worksheet with id {worksheet.id} inside of {worksheet.spreadsheet.title}.')
             donut_bot.update_sheet(worksheet)
-            print(f'Updated worksheet with id {worksheet.id} inside of {worksheet.spreadsheet.title}.')
+            donut_bot.timestamp(worksheet, 1, 1)
+            logger.info(f'Updated worksheet with id {worksheet.id} inside of {worksheet.spreadsheet.title}.')
 
         last_update = time.time()
-        print(f'Looping for {config["interval"]} seconds.')
+        logger.debug(f'Waiting for {config["interval"]} seconds.')
         while (time.time() - last_update) < config['interval']:
             pass

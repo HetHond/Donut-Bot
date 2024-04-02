@@ -1,3 +1,6 @@
+import datetime
+import time
+
 import gspread
 
 # Local imports
@@ -9,6 +12,9 @@ class DonutBot:
     def __init__(self, kucoin_key: str, kucoin_secret: str, kucoin_passphrase: str):
         self.kucoin_client = KucoinClient(key=kucoin_key, secret=kucoin_secret, passphrase=kucoin_passphrase)
 
+    def timestamp(self, worksheet: gspread.Worksheet, row: int, col: int):
+        worksheet.update_cell(row, col, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
     # TODO: specify data positions
     def update_sheet(self, worksheet: gspread.Worksheet):
         tickers = worksheet.col_values(1)[1:]
@@ -18,7 +24,7 @@ class DonutBot:
             if not ticker:
                 continue
 
-            row = i+2
+            row = i + 2
             col = 2
 
             # Bybit market price

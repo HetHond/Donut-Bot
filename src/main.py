@@ -68,13 +68,13 @@ def main():
 
     logger.info('Starting loop.')
     while True:
+        last_timestamp = time.time()
         for worksheet in worksheets:
             logger.info(f'Updating worksheet with id {worksheet.id} inside of {worksheet.spreadsheet.title}.')
             donut_bot.update_sheet(worksheet)
             donut_bot.timestamp(worksheet, 1, 1)
             logger.info(f'Updated worksheet with id {worksheet.id} inside of {worksheet.spreadsheet.title}.')
 
-        last_update = time.time()
         logger.debug(f'Waiting for {config["interval"]} seconds.')
-        while (time.time() - last_update) < config['interval']:
+        while (time.time() - last_timestamp) < config['interval']:
             pass

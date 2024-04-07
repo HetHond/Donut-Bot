@@ -1,5 +1,4 @@
 import datetime
-import time
 
 import gspread
 
@@ -17,15 +16,20 @@ class DonutBot:
 
     # TODO: specify data positions
     def update_sheet(self, worksheet: gspread.Worksheet):
-        tickers = worksheet.col_values(1)[1:]
-
         cells_to_update = []
-        for i, ticker in enumerate(tickers):
-            if not ticker:
+
+        row_values = worksheet.row_values(2)[1:]
+        for i, ticker in enumerate(row_values):
+            # Skip all un-even columns
+            if i % 2:
                 continue
 
-            row = i + 2
-            col = 2
+            # Quit trying when a blank space is found in an even column
+            if not ticker:
+                break
+
+            row = 3
+            col = i + 2
 
             # Bybit market price
             bybit_market_price = get_bybit_market_price(ticker + 'USDT')
@@ -34,7 +38,30 @@ class DonutBot:
                     row, col,
                     value=bybit_market_price
                 ))
+            row += 1
+
+            # Bybit funding rates
+            bybit_funding_rates = get_bybit_funding_rate_history(ticker + 'USDT')
+            if bybit_funding_rates is not None:
+                # Remove excess data
+                bybit_funding_rates = [float(fr['fundingRate']) * 100 for fr in bybit_funding_rates]
+
+                # Cut off everything past 100 entries
+                bybit_funding_rates = bybit_funding_rates[:min(100, len(bybit_funding_rates))]
+
+                # Format all funding rates to have 4 decimals
+                bybit_funding_rates = [f'{fr:.4f}' for fr in bybit_funding_rates]
+
+                for fr in bybit_funding_rates:
+                    cells_to_update.append(gspread.Cell(
+                        row, col,
+                        value=f'{fr}%'
+                    ))
+                    row += 1
+
+            # Next column
             col += 1
+            row = 3
 
             # Kucoin market price
             kucoin_market_price = self.kucoin_client.get_market_price(ticker + 'USDT')
@@ -43,24 +70,26 @@ class DonutBot:
                     row, col,
                     value=kucoin_market_price
                 ))
-            col += 1
+            row += 1
 
-            bybit_funding_rates = get_bybit_funding_rate_history(ticker + 'USDT')
-            if bybit_funding_rates is not None:
-                for j in range(min((3, len(bybit_funding_rates)))):
-                    cells_to_update.append(gspread.Cell(
-                        row, col,
-                        value=float(bybit_funding_rates[j]['fundingRate'])
-                    ))
-                    col += 1
-
+            # Kucoin funding rates
             kucoin_funding_rates = self.kucoin_client.get_funding_rate_history(ticker + 'USDT')
             if kucoin_funding_rates is not None:
-                for j in range(min((3, len(kucoin_funding_rates)))):
+                # Remove excess data
+                kucoin_funding_rates = [float(fr['fundingRate']) * 100 for fr in kucoin_funding_rates]
+
+                # Cut off everything past 100 entries
+                kucoin_funding_rates = kucoin_funding_rates[:min(100, len(kucoin_funding_rates))]
+
+                # Format all funding rates to have 4 decimals
+                kucoin_funding_rates = [f'{fr:.4f}' for fr in kucoin_funding_rates]
+
+                for fr in kucoin_funding_rates:
                     cells_to_update.append(gspread.Cell(
                         row, col,
-                        value=float(kucoin_funding_rates[j]['fundingRate'])
+                        value=f'{fr}%'
                     ))
-                    col += 1
+                    row += 1
 
-        worksheet.update_cells(cells_to_update)
+        if cells_to_update:
+            worksheet.update_cells(cells_to_update)
